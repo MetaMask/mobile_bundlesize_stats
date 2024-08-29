@@ -1,0 +1,142 @@
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script
+      type="text/javascript"
+      src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
+    ></script>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <div>
+      <div style="text-align: center">
+        <label for="commits">Commits:</label>
+        <select name="commits" id="commits" onchange="updateChart()">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="0" selected>ALL</option>
+        </select>
+      </div>
+      <canvas id="myChart"></canvas>
+    </div>
+    <script>
+      let allBundleSizeData;
+      let myDataChart;
+
+      async function renderChart(labels, bundleSizeData) {
+        const data = {
+          labels: labels,
+          datasets: [
+            {
+              label: "ios bundle size in bytes",
+              data: bundleSizeData,
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.2)",
+                "rgba(255, 159, 64, 0.2)",
+                "rgba(255, 205, 86, 0.2)",
+                "rgba(75, 192, 192, 0.2)",
+                "rgba(54, 162, 235, 0.2)",
+                "rgba(153, 102, 255, 0.2)",
+                "rgba(201, 203, 207, 0.2)",
+              ],
+              borderColor: [
+                "rgb(255, 99, 132)",
+                "rgb(255, 159, 64)",
+                "rgb(255, 205, 86)",
+                "rgb(75, 192, 192)",
+                "rgb(54, 162, 235)",
+                "rgb(153, 102, 255)",
+                "rgb(201, 203, 207)",
+              ],
+              borderWidth: 1,
+            },
+          ],
+        };
+
+        const config = {
+          type: "bar",
+          data: data,
+          options: {
+            onClick: (_, [raw]) => {
+              const commit = raw?.element?.$context?.raw?.x;
+              if (commit) {
+                window.open(
+                  `https://github.com/MetaMask/metamask-mobile/commit/${commit}`,
+                  "_blank"
+                );
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function (tooltipItems) {
+                    return `Bundle Size: ${
+                      tooltipItems.formattedValue
+                    }       Time: ${new Date(
+                      tooltipItems.raw.timestamp
+                    ).toLocaleString()}`;
+                  },
+                },
+              },
+            },
+          },
+        };
+
+        myDataChart = new Chart(document.getElementById("myChart"), config);
+      }
+
+      function loadJS(url, implementationCode, location) {
+        const scriptTag = document.createElement("script");
+        scriptTag.src = url;
+        scriptTag.onload = implementationCode;
+        location.appendChild(scriptTag);
+      }
+
+      function readBundleSizeData() {
+        const size = parseInt(document.getElementById("commits").value);
+        allBundleSizeData = Object.entries(data || {})
+          .map(([commit, d]) => ({
+            timestamp: d.timestamp,
+            x: commit,
+            y: d.ios,
+          }))
+          .sort((a, b) => a.timestamp - b.timestamp);
+        const bundleSizeData =
+          size > 0
+            ? allBundleSizeData.slice(allBundleSizeData.length - size)
+            : allBundleSizeData;
+        const labels = bundleSizeData.map((name) => name.x);
+        renderChart(labels, bundleSizeData);
+      }
+
+      function updateChart() {
+        const size = parseInt(document.getElementById("commits").value);
+        const bundleSizeData =
+          size > 0
+            ? allBundleSizeData.slice(allBundleSizeData.length - size)
+            : allBundleSizeData;
+        const labels = bundleSizeData.map((name) => name.x);
+        myDataChart.data.labels = labels;
+        myDataChart.data.datasets[0].data = bundleSizeData;
+        myDataChart.update();
+      }
+      const basePath = document.location.pathname
+        .split("/")
+        .slice(0, -1)
+        .join("/");
+      // random timestamp query param to prevent file from being cached
+      loadJS(
+        `${basePath}/stats/bundle_size_data.js?timestamp=${Date.now()}`,
+        readBundleSizeData,
+        document.head
+      );
+    </script>
+  </body>
+</html>
