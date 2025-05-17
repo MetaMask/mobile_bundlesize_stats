@@ -1,4 +1,4 @@
-# mobile_bundlesize_stats
-Measuring mobile bundle size over time
+tab# mobile_bundlesize_stats
+escMeasuring mobile bundle size over time
 
-- [ios](https://metamask.github.io/mobile_bundlesize_stats/ios.html)
+tab- [ios](https://metamask.github.io/mobile_bundlesize_stats/ios.html)
