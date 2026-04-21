@@ -18,5 +18,9 @@ const data = {
     "3e535e63eab7d5a8bae0d64b1300521073a394e0": {
         "ios": 57257472,
         "timestamp": 1776800377102
+    },
+    "afcee4dd38688b5eb023ca8a41dafea0650855a2": {
+        "ios": 57269488,
+        "timestamp": 1776802104136
     }
 };
